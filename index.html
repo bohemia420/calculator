@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Wealth Calculator</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0KOVEMeaeqUFXkoyDWk2rGu6cz9yrCAPiXDDRoeBnw1drJOKnFZOU" crossorigin="anonymous">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzYCcm2KEPZ4rBZdeQNmgvrPkrm8vAVjeYd" crossorigin="anonymous"></script>
+    <style>
+        :root {
+            --primary-color: #005A9C;
+            --secondary-color: #00A4E4;
+            --background-color: #f4f7f6;
+            --card-background: #ffffff;
+            --text-color: #333;
+            --label-color: #555;
+            --border-color: #e0e0e0;
+            --box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: var(--background-color); color: var(--text-color); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        header { text-align: center; margin-bottom: 30px; }
+        header h1 { color: var(--primary-color); margin-bottom: 5px; }
+        header p { color: var(--label-color); font-size: 1.1em; }
+        .container { display: flex; flex-wrap: wrap; justify-content: center; gap: 30px; width: 100%; max-width: 1200px; align-items: stretch; }
+        .calculator-wrapper { display: flex; flex-direction: column; flex: 1; min-width: 320px; max-width: 550px; }
+        .calculator { 
+            background: var(--card-background); 
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: var(--box-shadow); 
+            border-top: 4px solid var(--primary-color); 
+            width: 100%; 
+            box-sizing: border-box; 
+            flex-grow: 1;
+            /* FIXED: Make the card a flex container */
+            display: flex;
+            flex-direction: column;
+        }
+        .calculator-content {
+            /* FIXED: This new wrapper will allow the result box to grow */
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .calculator h2 { margin-top: 0; color: var(--primary-color); border-bottom: 1px solid var(--border-color); padding-bottom: 15px; font-weight: 600; }
+        .input-group { margin-bottom: 10px; }
+        .input-group label { display: flex; justify-content: space-between; font-weight: 500; color: var(--label-color); margin-bottom: 10px; }
+        .input-group label span:last-child { font-weight: 600; color: var(--primary-color); }
+        input[type="range"] { width: 100%; }
+        input[type="text"]:disabled { background-color: #e9ecef; cursor: not-allowed; text-align: center; font-weight: bold; }
+        .corpus-input-group { display: flex; align-items: center; gap: 10px; }
+        #corpus { flex-grow: 1; padding: 8px; border: 1px solid var(--border-color); border-radius: 5px; }
+        .result { 
+            margin-top: 30px; 
+            padding: 20px; 
+            background-color: var(--background-color); 
+            border-radius: 8px; 
+            text-align: center;
+            /* FIXED: Make the result box grow to fill space */
+            flex-grow: 1;
+        }
+        .result .value { font-size: 2em; font-weight: 700; color: var(--secondary-color); }
+        .result-details { display: flex; justify-content: space-around; margin-top: 15px; font-size: 0.9em; }
+        .result-details span { display: block; color: var(--label-color); }
+        .result-details strong { color: var(--text-color); }
+        button { background-color: var(--secondary-color); color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: 500; transition: background-color 0.2s; }
+        button:hover { background-color: var(--primary-color); }
+        .toggle-group, .radio-group { display: flex; gap: 10px; margin-bottom: 20px; }
+        .toggle-group label, .radio-group label { flex: 1; }
+        .toggle-group input[type="radio"], .radio-group input[type="radio"] { display: none; }
+        .toggle-group span, .radio-group span { display: block; padding: 10px; border: 1px solid var(--border-color); border-radius: 5px; text-align: center; cursor: pointer; transition: all 0.2s; }
+        .toggle-group input[type="radio"]:checked + span, .radio-group input[type="radio"]:checked + span { background-color: var(--primary-color); color: white; border-color: var(--primary-color); }
+        .math-button { margin-top: 20px; width: 100%; background-color: var(--primary-color); }
+        .math-button:hover { background-color: #004175; }
+        footer { margin-top: 40px; color: #888; font-size: 0.9em; }
+        .drawer-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 999; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0s 0.3s; }
+        .drawer {
+    position: fixed;
+    top: 0;
+    right: -450px; /* Changed from -400px */
+    width: 100%;
+    max-width: 450px; /* Changed from 380px */
+    height: 100%;
+    background: var(--card-background); /* Will now use the dark theme color */
+    z-index: 1000;
+    box-shadow: -4px 0 15px rgba(0,0,0,0.2);
+    padding: 25px;
+    box-sizing: border-box;
+    transition: right 0.3s ease;
+    overflow-y: auto;
+}
+        .drawer.active { right: 0; }
+        .drawer-overlay.active { opacity: 1; visibility: visible; transition: opacity 0.3s ease; }
+        .drawer-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 20px; }
+        .drawer-header h3 { margin: 0; color: var(--primary-color); }
+        .close-btn { font-size: 2em; font-weight: bold; color: #aaa; cursor: pointer; line-height: 1; }
+        .drawer-content p, .drawer-content ul { line-height: 1.6; }
+        .drawer-content ul { list-style: none; padding: 0; }
+        .drawer-content li { margin-bottom: 10px; }
+        .drawer-content strong { color: var(--primary-color); }
+        .drawer-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Advanced Wealth Calculator</h1>
+        <p>Plan your financial future with precision and clarity.</p>
+        <button id="theme-switcher">🌙</button>
+    </header>
+
+    <div class="container">
+        <div class="calculator-wrapper">
+            <div class="calculator">
+                <div class="calculator-content">
+                    <h2>Wealth Accumulator 📈</h2>
+                    <div class="input-group"><label for="monthlyInvestment"><span>Monthly Investment</span><span id="monthlyInvestmentLabel"></span></label><input type="range" id="monthlyInvestment" min="1000" max="100000" step="1000" value="10000"></div>
+                    <div class="input-group"><label for="tenure"><span>Tenure (Years)</span><span id="tenureLabel"></span></label><input type="range" id="tenure" min="1" max="40" value="15"></div>
+                    <div class="input-group"><label for="interestRate"><span>Expected Interest Rate (% p.a.)</span><span id="interestRateLabel"></span></label><input type="range" id="interestRate" min="1" max="30" value="12"></div>
+                    <div class="input-group">
+                        <label><span>Compounding Frequency</span></label>
+                        <div class="radio-group" id="compoundingFrequencyAcc">
+                            <label><input type="radio" name="frequencyAcc" value="12"><span>Monthly</span></label>
+                            <label><input type="radio" name="frequencyAcc" value="4" checked><span>Quarterly</span></label>
+                            <label><input type="radio" name="frequencyAcc" value="1"><span>Annually</span></label>
+                        </div>
+                    </div>
+                    <div class="result"><h3>Future Value</h3><div class="value" id="futureValue"></div><div class="result-details"><div><span>Total Invested</span><strong id="totalInvestment"></strong></div><div><span>Wealth Gained</span><strong id="wealthGained"></strong></div></div></div>
+                </div>
+            </div>
+            <button class="math-button" data-content="accumulator">Know the Math 🧠</button>
+        </div>
+
+        <div class="calculator-wrapper">
+            <div class="calculator">
+                <div class="calculator-content">
+                    <h2>Withdrawal Calculator 💰</h2>
+                    <div class="input-group"><label for="corpus">Corpus Amount</label><div class="corpus-input-group"><input type="number" id="corpus" placeholder="e.g., 10000000" value="10000000"><button id="useAccumulatedBtn">Use Accumulated</button></div></div>
+                    <div class="input-group"><label>Interest Rate (Fixed, Compounded Monthly)</label><input type="text" value="15% p.a." disabled></div>
+                    <div class="toggle-group"><label><input type="radio" name="withdrawalMode" value="calcPmt" checked><span>Calculate Monthly Withdrawal</span></label><label><input type="radio" name="withdrawalMode" value="calcTenure"><span>Calculate Tenure</span></label></div>
+                    <div id="pmtMode"><div class="input-group"><label for="withdrawalTenure"><span>Withdrawal Tenure (Years)</span><span id="withdrawalTenureLabel"></span></label><input type="range" id="withdrawalTenure" min="1" max="50" value="25"></div><div class="result"><h3>You Can Withdraw Monthly</h3><div class="value" id="monthlyWithdrawal"></div></div></div>
+                    <div id="tenureMode" style="display: none;"><div class="input-group"><label for="desiredWithdrawal"><span>Desired Monthly Withdrawal</span><span id="desiredWithdrawalLabel"></span></label><input type="range" id="desiredWithdrawal" min="10000" max="500000" step="5000" value="80000"></div><div class="result"><h3>Your Corpus Will Last For</h3><div class="value" id="corpusTenure"></div></div></div>
+                </div>
+            </div>
+            <button class="math-button" data-content="withdrawal">Know the Math 🧠</button>
+        </div>
+    </div>
+    
+    <div class="drawer-overlay" id="drawerOverlay"></div><div class="drawer" id="drawer"><div class="drawer-header"><h3 id="drawerTitle"></h3><span class="close-btn" id="closeBtn">&times;</span></div><div class="drawer-content" id="drawerContent"></div></div>
+    <footer><p>&copy; 2025 Sumit Khanna HUF. For illustrative purposes only. Doesn't account for Taxation Liabilities</p></footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let accumulatedValue = 0;
+
+            function formatIndianCurrency(num) {
+                if (num >= 10000000) return `₹${(num / 10000000).toFixed(2)} Cr`;
+                if (num >= 100000) return `₹${(num / 100000).toFixed(2)} L`;
+                return `₹${num.toLocaleString('en-IN')}`;
+            }
+
+            function calculateAccumulation() { /* ... function unchanged ... */ }
+            function calculateWithdrawal() { /* ... function unchanged ... */ }
+            
+            // Re-pasting the functions here for completeness, no changes were made to their internal logic.
+            function calculateAccumulation() {
+                const P = parseFloat(document.getElementById('monthlyInvestment').value);
+                const t = parseInt(document.getElementById('tenure').value);
+                const annualRate = parseFloat(document.getElementById('interestRate').value) / 100;
+                const freq = parseInt(document.querySelector('input[name="frequencyAcc"]:checked').value);
+                let futureValue = 0;
+                const totalMonths = t * 12;
+                const periodicRate = annualRate / freq;
+                const compoundingInterval = 12 / freq;
+                for (let month = 1; month <= totalMonths; month++) {
+                    futureValue += P;
+                    if (month % compoundingInterval === 0) {
+                        futureValue *= (1 + periodicRate);
+                    }
+                }
+                accumulatedValue = futureValue;
+                const totalInvestment = P * totalMonths;
+                const wealthGained = futureValue - totalInvestment;
+                document.getElementById('monthlyInvestmentLabel').innerText = `₹${P.toLocaleString('en-IN')}`;
+                document.getElementById('tenureLabel').innerText = `${t} Years`;
+                document.getElementById('interestRateLabel').innerText = `${(annualRate * 100).toFixed(0)}%`;
+                document.getElementById('futureValue').innerText = formatIndianCurrency(futureValue);
+                document.getElementById('totalInvestment').innerText = formatIndianCurrency(totalInvestment);
+                document.getElementById('wealthGained').innerText = formatIndianCurrency(wealthGained);
+            }
+
+            function calculateWithdrawal() {
+                const PV = parseFloat(document.getElementById('corpus').value) || 0;
+                const withdrawalMode = document.querySelector('input[name="withdrawalMode"]:checked').value;
+                const fixedAnnualRate = 0.15;
+                const monthlyRate = fixedAnnualRate / 12;
+                if (withdrawalMode === 'calcPmt') {
+                    const t = parseInt(document.getElementById('withdrawalTenure').value);
+                    const n_months = t * 12;
+                    const pmt = PV * (monthlyRate * Math.pow(1 + monthlyRate, n_months)) / (Math.pow(1 + monthlyRate, n_months) - 1);
+                    document.getElementById('withdrawalTenureLabel').innerText = `${t} Years`;
+                    document.getElementById('monthlyWithdrawal').innerText = (isFinite(pmt) && pmt > 0) ? `₹${Math.round(pmt).toLocaleString('en-IN')}` : 'N/A';
+                } else {
+                    const PMT = parseFloat(document.getElementById('desiredWithdrawal').value);
+                    if (PMT <= PV * monthlyRate) {
+                        document.getElementById('corpusTenure').innerText = 'Forever ♾️';
+                    } else {
+                        const n_months = Math.log(PMT / (PMT - (PV * monthlyRate))) / Math.log(1 + monthlyRate);
+                        const years = Math.floor(n_months / 12);
+                        const months = Math.round(n_months % 12);
+                        document.getElementById('corpusTenure').innerText = isNaN(years) ? 'N/A' : `${years} Yrs & ${months} Mos`;
+                    }
+                    document.getElementById('desiredWithdrawalLabel').innerText = `₹${PMT.toLocaleString('en-IN')}`;
+                }
+            }
+            
+            // --- Event Listeners ---
+            const accumulatorInputs = [document.getElementById('monthlyInvestment'), document.getElementById('tenure'), document.getElementById('interestRate'), ...document.querySelectorAll('input[name="frequencyAcc"]')];
+            const withdrawalInputs = [document.getElementById('corpus'), document.getElementById('withdrawalTenure'), document.getElementById('desiredWithdrawal'), ...document.querySelectorAll('input[name="withdrawalMode"]')];
+            accumulatorInputs.forEach(input => input.addEventListener('input', calculateAccumulation));
+            withdrawalInputs.forEach(input => input.addEventListener('input', calculateWithdrawal));
+            document.getElementById('useAccumulatedBtn').addEventListener('click', () => { document.getElementById('corpus').value = Math.round(accumulatedValue); calculateWithdrawal(); });
+            document.querySelectorAll('input[name="withdrawalMode"]').forEach(radio => { radio.addEventListener('change', () => { document.getElementById('pmtMode').style.display = (radio.value === 'calcPmt') ? 'block' : 'none'; document.getElementById('tenureMode').style.display = (radio.value === 'calcTenure') ? 'block' : 'none'; calculateWithdrawal(); }); });
+            
+            // --- Drawer Logic ---
+            const drawer = document.getElementById('drawer'), overlay = document.getElementById('drawerOverlay'), closeBtn = document.getElementById('closeBtn'), mathButtons = document.querySelectorAll('.math-button');
+            const formulas = {
+    accumulator: {
+        title: 'Accumulation Formula',
+        // Ensure your file is named "Accumulator.png" (capital A)
+        content: `<img src="Accumulator.png" alt="Accumulation Formula">`
+    },
+    withdrawal: {
+        title: 'Withdrawal Formulas',
+        // Ensure your files are spelled "Withdrawal" not "Withdrawl"
+        content: `<img src="Withdrawl1.png" alt="Withdrawal Formula 1"><img src="Withdrawl2.png" alt="Withdrawal Formula 2">`
+    }
+};
+
+// This function is correct and doesn't need changes.
+function openDrawer(type) {
+    const data = formulas[type];
+    document.getElementById('drawerTitle').innerText = data.title;
+    document.getElementById('drawerContent').innerHTML = data.content;
+    drawer.classList.add('active');
+    overlay.classList.add('active');
+}
+            // Re-pasting content for completeness
+            //formulas.accumulator.content = `<p>Because investments are monthly but compounding can be different, we calculate month-by-month.</p><p>For each month:</p><p><strong>1. Add Investment:</strong> The monthly amount is added to the balance.</p><p><strong>2. Check & Compound:</strong> If the month is the end of a compounding period (e.g., the 3rd month for quarterly), interest is applied.</p><p>$$ Balance = Balance \\times (1 + \\frac{R}{f}) $$</p><ul><li><strong>R</strong>: Annual Interest Rate</li><li><strong>f</strong>: Compounding Frequency per year</li></ul>`;
+            //formulas.withdrawal.content = `<p>Withdrawals are calculated assuming the fixed 15% annual interest is <strong>compounded monthly</strong>.</p><p>We use the standard present value of an annuity formula with a monthly interest rate (r).</p><p>$$ r = \\frac{15\\%}{12} $$</p><p><strong>To Calculate Monthly Withdrawal (PMT):</strong></p><p>$$ PMT = PV \\times \\frac{r(1 + r)^n}{(1 + r)^n - 1} $$</p><ul><li><strong>PV</strong>: Starting Corpus</li><li><strong>n</strong>: Total months of withdrawal</li></ul>`;
+
+            function openDrawer2(type) { 
+                const data = formulas[type]; 
+                const contentDiv = document.getElementById('drawerContent');
+                document.getElementById('drawerTitle').innerText = data.title; 
+                contentDiv.innerHTML = data.content;
+                
+                // FIXED: Manually find and render LaTeX using the core katex library
+                if (window.katex) {
+                    contentDiv.innerHTML = contentDiv.innerHTML.replace(/\$\$(.*?)\$\$/g, (match, expression) => {
+                        return katex.renderToString(expression, { throwOnError: false, displayMode: true });
+                    });
+                    contentDiv.innerHTML = contentDiv.innerHTML.replace(/\$(.*?)\$/g, (match, expression) => {
+                        return katex.renderToString(expression, { throwOnError: false, displayMode: false });
+                    });
+                }
+
+                drawer.classList.add('active'); 
+                overlay.classList.add('active'); 
+            }
+            function closeDrawer() { drawer.classList.remove('active'); overlay.classList.remove('active'); }
+            mathButtons.forEach(button => { button.addEventListener('click', (e) => openDrawer(e.target.getAttribute('data-content'))); });
+            closeBtn.addEventListener('click', closeDrawer);
+            overlay.addEventListener('click', closeDrawer);
+
+            calculateAccumulation(); 
+            calculateWithdrawal(); 
+        });
+    </script>
+</body>
+</html>
